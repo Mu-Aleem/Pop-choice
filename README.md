@@ -1,37 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PopChoice
+
+AI-powered movie recommendations for groups. Everyone answers a few questions, and the AI finds the one movie the whole group will enjoy.
+
+## How It Works
+
+1. Enter how many people and how much time you have
+2. Each person answers four questions — favorite movie, new/classic, mood, favorite film person
+3. AI analyzes everyone's preferences, searches the vector database, and recommends a movie with a poster and reason
+
+## The AI Pipeline
+
+- **Embeddings** — User answers are combined and converted into vectors using Ollama (nomic-embed-text)
+- **Semantic Search** — Query vector is matched against movie vectors in Supabase using cosine similarity
+- **LLM Reasoning** — gemma3:4b picks the best movie and explains why it fits the group
+- **Movie Posters** — TMDB API provides official posters and metadata
+
+## Tech Stack
+
+- **Next.js** — Full-stack React framework
+- **Ollama** — Local AI (nomic-embed-text + gemma3:4b)
+- **Supabase** — PostgreSQL with pgvector for vector storage
+- **LangChain** — Text splitting for movie data
+- **TMDB API** — Movie posters and metadata
+- **Tailwind CSS** — Styling
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- [Ollama](https://ollama.com) with these models:
+  ```bash
+  ollama pull nomic-embed-text
+  ollama pull gemma3:4b
+  ```
+- A [Supabase](https://supabase.com) project with pgvector enabled
+- A [TMDB API key](https://developer.themoviedb.org/docs/getting-started) (free)
+
+### Supabase Setup
+
+Create a `movies` table and a `match_movies` function in your Supabase project. The table needs `content` (text) and `embedding` (vector) columns.
+
+### Installation
+
+```bash
+git clone https://github.com/Mu-Aleem/Pop-choice.git
+cd Pop-choice
+npm install
+```
+
+### Environment Variables
+
+Create a `.env` file:
+
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_API_KEY=your_supabase_anon_key
+TMDB_API_KEY=your_tmdb_api_key
+USE_MOCKS=false
+```
+
+### Seed the Database
+
+```bash
+npx tsx scripts/seed-movies.ts
+```
+
+This embeds the movie data and stores the vectors in Supabase.
+
+### Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testing with Mock Data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `USE_MOCKS=true` in `.env` to test the UI without Ollama or Supabase running.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+  page.tsx                    — Main page with multi-step flow
+  components/
+    StartView.tsx             — Start screen (people count + time)
+    QuestionsView.tsx         — Per-person questions
+    MovieView.tsx             — Movie result with poster
+  api/
+    recommend/route.ts        — AI recommendation endpoint
+__mocks__/
+  movies.ts                   — Movie data
+  recommendations.ts          — Mock recommendations for testing
+scripts/
+  seed-movies.ts              — Seeds Supabase with movie embeddings
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Pop-choice
+MIT
